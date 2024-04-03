@@ -509,6 +509,17 @@ These registers are used as defaults:</p>
 are joined with newlines. Pasting from these registers will paste multiple
 selections if the clipboard was last yanked to by the Helix session. Otherwise
 the clipboard contents are pasted as one selection.</p>
+<h3 id="tmux-clipboard-issues"><a class="header" href="#tmux-clipboard-issues">Tmux clipboard issues</a></h3>
+<p>Tmux clipboard support has bad interactions with some specific remote shell
+and terminal combinations (e.g. kitty + mosh + tmux). Tmux allows for escaping
+strings directly to the terminal, bypassing the remote shell and allowing work
+arounds to this problem. Helix is able to work around this problem by escaping
+the OSC52 sequences in tmux. To use this feature, you need to enable the tmux
+option with the tmux command:</p>
+<pre><code>set-window-option -g allow-passthrough on
+</code></pre>
+<p>Helix will detect this and use the feature to bypass tmux and the remote
+shell. You can find more information <a href="https://sunaku.github.io/tmux-yank-osc52.html">here</a>.</p>
 <h2 id="surround"><a class="header" href="#surround">Surround</a></h2>
 <p>Helix includes built-in functionality similar to <a href="https://github.com/tpope/vim-surround">vim-surround</a>.
 The keymappings have been inspired from <a href="https://github.com/machakann/vim-sandwich">vim-sandwich</a>:</p>
@@ -886,7 +897,8 @@ useful when you're simply looking over text and not actively editing it.</p>
 <tr><td><code>F</code></td><td>Open file picker at current working directory</td><td><code>file_picker_in_current_directory</code></td></tr>
 <tr><td><code>b</code></td><td>Open buffer picker</td><td><code>buffer_picker</code></td></tr>
 <tr><td><code>j</code></td><td>Open jumplist picker</td><td><code>jumplist_picker</code></td></tr>
-<tr><td><code>g</code></td><td>Debug (experimental)</td><td>N/A</td></tr>
+<tr><td><code>g</code></td><td>Open changed file picker</td><td><code>changed_file_picker</code></td></tr>
+<tr><td><code>G</code></td><td>Debug (experimental)</td><td>N/A</td></tr>
 <tr><td><code>k</code></td><td>Show documentation for item under cursor in a <a href="keymap.html#popup">popup</a> (<strong>LSP</strong>)</td><td><code>hover</code></td></tr>
 <tr><td><code>s</code></td><td>Open document symbol picker (<strong>LSP</strong>)</td><td><code>symbol_picker</code></td></tr>
 <tr><td><code>S</code></td><td>Open workspace symbol picker (<strong>LSP</strong>)</td><td><code>workspace_symbol_picker</code></td></tr>
@@ -1155,6 +1167,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>beancount</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>bibtex</td><td>✓</td><td></td><td></td><td><code>texlab</code></td></tr>
 <tr><td>bicep</td><td>✓</td><td></td><td></td><td><code>bicep-langserver</code></td></tr>
+<tr><td>bitbake</td><td>✓</td><td></td><td></td><td><code>bitbake-language-server</code></td></tr>
 <tr><td>blade</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>blueprint</td><td>✓</td><td></td><td></td><td><code>blueprint-compiler</code></td></tr>
 <tr><td>c</td><td>✓</td><td>✓</td><td>✓</td><td><code>clangd</code></td></tr>
@@ -1214,7 +1227,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>gomod</td><td>✓</td><td></td><td></td><td><code>gopls</code></td></tr>
 <tr><td>gotmpl</td><td>✓</td><td></td><td></td><td><code>gopls</code></td></tr>
 <tr><td>gowork</td><td>✓</td><td></td><td></td><td><code>gopls</code></td></tr>
-<tr><td>graphql</td><td>✓</td><td></td><td></td><td><code>graphql-lsp</code></td></tr>
+<tr><td>graphql</td><td>✓</td><td>✓</td><td></td><td><code>graphql-lsp</code></td></tr>
 <tr><td>groovy</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>hare</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>haskell</td><td>✓</td><td>✓</td><td></td><td><code>haskell-language-server-wrapper</code></td></tr>
@@ -1236,7 +1249,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>javascript</td><td>✓</td><td>✓</td><td>✓</td><td><code>typescript-language-server</code></td></tr>
 <tr><td>jinja</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>jsdoc</td><td>✓</td><td></td><td></td><td></td></tr>
-<tr><td>json</td><td>✓</td><td></td><td>✓</td><td><code>vscode-json-language-server</code></td></tr>
+<tr><td>json</td><td>✓</td><td>✓</td><td>✓</td><td><code>vscode-json-language-server</code></td></tr>
 <tr><td>json5</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>jsonc</td><td>✓</td><td></td><td>✓</td><td><code>vscode-json-language-server</code></td></tr>
 <tr><td>jsonnet</td><td>✓</td><td></td><td></td><td><code>jsonnet-language-server</code></td></tr>
@@ -1274,6 +1287,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>ocaml</td><td>✓</td><td></td><td>✓</td><td><code>ocamllsp</code></td></tr>
 <tr><td>ocaml-interface</td><td>✓</td><td></td><td></td><td><code>ocamllsp</code></td></tr>
 <tr><td>odin</td><td>✓</td><td></td><td>✓</td><td><code>ols</code></td></tr>
+<tr><td>ohm</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
 <tr><td>opencl</td><td>✓</td><td>✓</td><td>✓</td><td><code>clangd</code></td></tr>
 <tr><td>openscad</td><td>✓</td><td></td><td></td><td><code>openscad-lsp</code></td></tr>
 <tr><td>org</td><td>✓</td><td></td><td></td><td></td></tr>
@@ -1332,7 +1346,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>templ</td><td>✓</td><td></td><td></td><td><code>templ</code></td></tr>
 <tr><td>tfvars</td><td>✓</td><td></td><td>✓</td><td><code>terraform-ls</code></td></tr>
 <tr><td>todotxt</td><td>✓</td><td></td><td></td><td></td></tr>
-<tr><td>toml</td><td>✓</td><td></td><td></td><td><code>taplo</code></td></tr>
+<tr><td>toml</td><td>✓</td><td>✓</td><td></td><td><code>taplo</code></td></tr>
 <tr><td>tsq</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>tsx</td><td>✓</td><td>✓</td><td>✓</td><td><code>typescript-language-server</code></td></tr>
 <tr><td>twig</td><td>✓</td><td></td><td></td><td></td></tr>
@@ -1432,13 +1446,13 @@ Its settings will be merged with the configuration directory <code>config.toml</
 <tr><td><code>insert-final-newline</code></td><td>Whether to automatically insert a trailing line-ending on write if missing</td><td><code>true</code></td></tr>
 <tr><td><code>popup-border</code></td><td>Draw border around <code>popup</code>, <code>menu</code>, <code>all</code>, or <code>none</code></td><td><code>none</code></td></tr>
 <tr><td><code>indent-heuristic</code></td><td>How the indentation for a newly inserted line is computed: <code>simple</code> just copies the indentation level from the previous line, <code>tree-sitter</code> computes the indentation based on the syntax tree and <code>hybrid</code> combines both approaches. If the chosen heuristic is not available, a different one will be used as a fallback (the fallback order being <code>hybrid</code> -&gt; <code>tree-sitter</code> -&gt; <code>simple</code>).</td><td><code>hybrid</code></td></tr>
-<tr><td><code>jump-label-alphabet</code></td><td>The characters that are used to generate two character jump labels. Characters at the start of the alphabet are used first.</td><td>"abcdefghijklmnopqrstuvwxyz"</td></tr>
+<tr><td><code>jump-label-alphabet</code></td><td>The characters that are used to generate two character jump labels. Characters at the start of the alphabet are used first.</td><td><code>"abcdefghijklmnopqrstuvwxyz"</code></td></tr>
 </tbody></table>
 </div>
 <h3 id="editorstatusline-section"><a class="header" href="#editorstatusline-section"><code>[editor.statusline]</code> Section</a></h3>
 <p>Allows configuring the statusline at the bottom of the editor.</p>
 <p>The configuration distinguishes between three areas of the status line:</p>
-<p><code>[ ... ... LEFT ... ... | ... ... ... ... CENTER ... ... ... ... | ... ... RIGHT ... ... ]</code></p>
+<p><code>[ ... ... LEFT ... ... | ... ... ... CENTER ... ... ... | ... ... RIGHT ... ... ]</code></p>
 <p>Statusline elements can be defined as follows:</p>
 <pre><code class="language-toml">[editor.statusline]
 left = ["mode", "spinner"]
@@ -1528,7 +1542,7 @@ not visible in the Helix file picker and global search.</p>
 <tr><td><code>git-ignore</code></td><td>Enables reading <code>.gitignore</code> files</td><td><code>true</code></td></tr>
 <tr><td><code>git-global</code></td><td>Enables reading global <code>.gitignore</code>, whose path is specified in git's config: <code>core.excludesfile</code> option</td><td><code>true</code></td></tr>
 <tr><td><code>git-exclude</code></td><td>Enables reading <code>.git/info/exclude</code> files</td><td><code>true</code></td></tr>
-<tr><td><code>max-depth</code></td><td>Set with an integer value for maximum depth to recurse</td><td>Defaults to <code>None</code>.</td></tr>
+<tr><td><code>max-depth</code></td><td>Set with an integer value for maximum depth to recurse</td><td>Unset by default</td></tr>
 </tbody></table>
 </div>
 <p>Ignore files can be placed locally as <code>.ignore</code> or put in your home directory as <code>~/.ignore</code>. They support the usual ignore and negative ignore (unignore) rules used in <code>.gitignore</code> files.</p>
@@ -1563,7 +1577,7 @@ setting <code>auto-pairs</code> to a TOML table:</p>
 <p>Additionally, this setting can be used in a language config. Unless
 the editor setting is <code>false</code>, this will override the editor config in
 documents with this language.</p>
-<p>Example <code>languages.toml</code> that adds &lt;&gt; and removes ''</p>
+<p>Example <code>languages.toml</code> that adds <code>&lt;&gt;</code> and removes <code>''</code></p>
 <pre><code class="language-toml">[[language]]
 name = "rust"
 
@@ -1585,8 +1599,8 @@ name = "rust"
 <h3 id="editorwhitespace-section"><a class="header" href="#editorwhitespace-section"><code>[editor.whitespace]</code> Section</a></h3>
 <p>Options for rendering whitespace with visible characters. Use <code>:set whitespace.render all</code> to temporarily enable visible whitespace.</p>
 <div class="table-wrapper"><table><thead><tr><th>Key</th><th>Description</th><th>Default</th></tr></thead><tbody>
-<tr><td><code>render</code></td><td>Whether to render whitespace. May either be <code>"all"</code> or <code>"none"</code>, or a table with sub-keys <code>space</code>, <code>nbsp</code>, <code>tab</code>, and <code>newline</code></td><td><code>"none"</code></td></tr>
-<tr><td><code>characters</code></td><td>Literal characters to use when rendering whitespace. Sub-keys may be any of <code>tab</code>, <code>space</code>, <code>nbsp</code>, <code>newline</code> or <code>tabpad</code></td><td>See example below</td></tr>
+<tr><td><code>render</code></td><td>Whether to render whitespace. May either be <code>all</code> or <code>none</code>, or a table with sub-keys <code>space</code>, <code>nbsp</code>, <code>nnbsp</code>, <code>tab</code>, and <code>newline</code></td><td><code>none</code></td></tr>
+<tr><td><code>characters</code></td><td>Literal characters to use when rendering whitespace. Sub-keys may be any of <code>tab</code>, <code>space</code>, <code>nbsp</code>, <code>nnbsp</code>, <code>newline</code> or <code>tabpad</code></td><td>See example below</td></tr>
 </tbody></table>
 </div>
 <p>Example</p>
@@ -1596,11 +1610,14 @@ render = "all"
 [editor.whitespace.render]
 space = "all"
 tab = "all"
+nbsp = "none"
+nnbsp = "none"
 newline = "none"
 
 [editor.whitespace.characters]
 space = "·"
 nbsp = "⍽"
+nnbsp = "␣"
 tab = "→"
 newline = "⏎"
 tabpad = "·" # Tabs will look like "→···" (depending on tab width)
@@ -1990,6 +2007,7 @@ berry = "#2A2A4D"
 <li><code>delta</code> - modifications
 <ul>
 <li><code>moved</code> - renamed or moved files/changes</li>
+<li><code>conflict</code> - merge conflicts</li>
 <li><code>gutter</code> - gutter indicator</li>
 </ul>
 </li>
@@ -2438,6 +2456,8 @@ for example).</p>
 <tr><td><code>parameter.inside</code></td></tr>
 <tr><td><code>comment.inside</code></td></tr>
 <tr><td><code>comment.around</code></td></tr>
+<tr><td><code>entry.inside</code></td></tr>
+<tr><td><code>entry.around</code></td></tr>
 </tbody></table>
 </div>
 <p><a href="https://github.com/search?q=repo%3Ahelix-editor%2Fhelix+path%3A%2A%2A/textobjects.scm&amp;type=Code&amp;ref=advsearch&amp;l=&amp;l=">Example query files</a> can be found in the helix GitHub repository.</p>

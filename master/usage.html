@@ -243,6 +243,17 @@ These registers are used as defaults:</p>
 are joined with newlines. Pasting from these registers will paste multiple
 selections if the clipboard was last yanked to by the Helix session. Otherwise
 the clipboard contents are pasted as one selection.</p>
+<h3 id="tmux-clipboard-issues"><a class="header" href="#tmux-clipboard-issues">Tmux clipboard issues</a></h3>
+<p>Tmux clipboard support has bad interactions with some specific remote shell
+and terminal combinations (e.g. kitty + mosh + tmux). Tmux allows for escaping
+strings directly to the terminal, bypassing the remote shell and allowing work
+arounds to this problem. Helix is able to work around this problem by escaping
+the OSC52 sequences in tmux. To use this feature, you need to enable the tmux
+option with the tmux command:</p>
+<pre><code>set-window-option -g allow-passthrough on
+</code></pre>
+<p>Helix will detect this and use the feature to bypass tmux and the remote
+shell. You can find more information <a href="https://sunaku.github.io/tmux-yank-osc52.html">here</a>.</p>
 <h2 id="surround"><a class="header" href="#surround">Surround</a></h2>
 <p>Helix includes built-in functionality similar to <a href="https://github.com/tpope/vim-surround">vim-surround</a>.
 The keymappings have been inspired from <a href="https://github.com/machakann/vim-sandwich">vim-sandwich</a>:</p>
