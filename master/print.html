@@ -670,6 +670,9 @@ selection to the "func" <code>identifier</code>.</p>
 <blockquote>
 <p>💡 Mappings marked (<strong>TS</strong>) require a tree-sitter grammar for the file type.</p>
 </blockquote>
+<blockquote>
+<p>⚠️ Some terminals' default key mappings conflict with Helix's. If any of the mappings described on this page do not work as expected, check your terminal's mappings to ensure they do not conflict. See the (wiki)[https://github.com/helix-editor/helix/wiki/Terminal-Support] for known conflicts.</p>
+</blockquote>
 <h2 id="normal-mode"><a class="header" href="#normal-mode">Normal mode</a></h2>
 <p>Normal mode is the default mode when you launch helix. You can return to it from other modes by pressing the <code>Escape</code> key.</p>
 <h3 id="movement"><a class="header" href="#movement">Movement</a></h3>
@@ -1149,16 +1152,18 @@ you to selectively add search terms to your selections.</p>
 <tr><td><code>:redraw</code></td><td>Clear and re-render the whole UI</td></tr>
 <tr><td><code>:move</code></td><td>Move the current buffer and its corresponding file to a different path</td></tr>
 <tr><td><code>:yank-diagnostic</code></td><td>Yank diagnostic(s) under primary cursor to register, or clipboard by default</td></tr>
+<tr><td><code>:read</code>, <code>:r</code></td><td>Load a file into buffer</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="language-support"><a class="header" href="#language-support">Language Support</a></h1>
 <p>The following languages and Language Servers are supported. To use
-Language Server features, you must first <a href="https://github.com/helix-editor/helix/wiki/How-to-install-the-default-language-servers">install</a> the
+Language Server features, you must first <a href="https://github.com/helix-editor/helix/wiki/Language-Server-Configurations">configure</a> the
 appropriate Language Server.</p>
 <p>You can check the language support in your installed helix version with <code>hx --health</code>.</p>
 <p>Also see the <a href="./languages.html">Language Configuration</a> docs and the <a href="./guides/adding_languages.html">Adding
 Languages</a> guide for more language configuration information.</p>
 <div class="table-wrapper"><table><thead><tr><th>Language</th><th>Syntax Highlighting</th><th>Treesitter Textobjects</th><th>Auto Indent</th><th>Default LSP</th></tr></thead><tbody>
 <tr><td>ada</td><td>✓</td><td>✓</td><td></td><td><code>ada_language_server</code>, <code>ada_language_server</code></td></tr>
+<tr><td>adl</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
 <tr><td>agda</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>astro</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>awk</td><td>✓</td><td>✓</td><td></td><td><code>awk-language-server</code></td></tr>
@@ -1195,6 +1200,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>dockerfile</td><td>✓</td><td></td><td></td><td><code>docker-langserver</code></td></tr>
 <tr><td>dot</td><td>✓</td><td></td><td></td><td><code>dot-language-server</code></td></tr>
 <tr><td>dtd</td><td>✓</td><td></td><td></td><td></td></tr>
+<tr><td>earthfile</td><td>✓</td><td>✓</td><td>✓</td><td><code>earthlyls</code></td></tr>
 <tr><td>edoc</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>eex</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>ejs</td><td>✓</td><td></td><td></td><td></td></tr>
@@ -1257,10 +1263,11 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>julia</td><td>✓</td><td>✓</td><td>✓</td><td><code>julia</code></td></tr>
 <tr><td>just</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
 <tr><td>kdl</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
-<tr><td>koka</td><td>✓</td><td></td><td>✓</td><td></td></tr>
+<tr><td>koka</td><td>✓</td><td></td><td>✓</td><td><code>koka</code></td></tr>
 <tr><td>kotlin</td><td>✓</td><td></td><td></td><td><code>kotlin-language-server</code></td></tr>
 <tr><td>latex</td><td>✓</td><td>✓</td><td></td><td><code>texlab</code></td></tr>
 <tr><td>ld</td><td>✓</td><td></td><td>✓</td><td></td></tr>
+<tr><td>ldif</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>lean</td><td>✓</td><td></td><td></td><td><code>lean</code></td></tr>
 <tr><td>ledger</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>llvm</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
@@ -1277,6 +1284,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>mermaid</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>meson</td><td>✓</td><td></td><td>✓</td><td></td></tr>
 <tr><td>mint</td><td></td><td></td><td></td><td><code>mint</code></td></tr>
+<tr><td>move</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>msbuild</td><td>✓</td><td></td><td>✓</td><td></td></tr>
 <tr><td>nasm</td><td>✓</td><td>✓</td><td></td><td></td></tr>
 <tr><td>nickel</td><td>✓</td><td></td><td>✓</td><td><code>nls</code></td></tr>
@@ -1329,7 +1337,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>smali</td><td>✓</td><td></td><td>✓</td><td></td></tr>
 <tr><td>smithy</td><td>✓</td><td></td><td></td><td><code>cs</code></td></tr>
 <tr><td>sml</td><td>✓</td><td></td><td></td><td></td></tr>
-<tr><td>solidity</td><td>✓</td><td></td><td></td><td><code>solc</code></td></tr>
+<tr><td>solidity</td><td>✓</td><td>✓</td><td></td><td><code>solc</code></td></tr>
 <tr><td>spicedb</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>sql</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>sshclientconfig</td><td>✓</td><td></td><td></td><td></td></tr>
@@ -1343,6 +1351,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>tablegen</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
 <tr><td>tact</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
 <tr><td>task</td><td>✓</td><td></td><td></td><td></td></tr>
+<tr><td>tcl</td><td>✓</td><td></td><td>✓</td><td></td></tr>
 <tr><td>templ</td><td>✓</td><td></td><td></td><td><code>templ</code></td></tr>
 <tr><td>tfvars</td><td>✓</td><td></td><td>✓</td><td><code>terraform-ls</code></td></tr>
 <tr><td>todotxt</td><td>✓</td><td></td><td></td><td></td></tr>
@@ -1351,7 +1360,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>tsx</td><td>✓</td><td>✓</td><td>✓</td><td><code>typescript-language-server</code></td></tr>
 <tr><td>twig</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>typescript</td><td>✓</td><td>✓</td><td>✓</td><td><code>typescript-language-server</code></td></tr>
-<tr><td>typst</td><td>✓</td><td></td><td></td><td><code>typst-lsp</code></td></tr>
+<tr><td>typst</td><td>✓</td><td></td><td></td><td><code>tinymist</code>, <code>typst-lsp</code></td></tr>
 <tr><td>ungrammar</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>unison</td><td>✓</td><td></td><td>✓</td><td></td></tr>
 <tr><td>uxntal</td><td>✓</td><td></td><td></td><td></td></tr>
@@ -1369,6 +1378,7 @@ Languages</a> guide for more language configuration information.</p>
 <tr><td>wren</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
 <tr><td>xit</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>xml</td><td>✓</td><td></td><td>✓</td><td></td></tr>
+<tr><td>xtc</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>yaml</td><td>✓</td><td></td><td>✓</td><td><code>yaml-language-server</code>, <code>ansible-language-server</code></td></tr>
 <tr><td>yuck</td><td>✓</td><td></td><td></td><td></td></tr>
 <tr><td>zig</td><td>✓</td><td>✓</td><td>✓</td><td><code>zls</code></td></tr>
@@ -1731,10 +1741,6 @@ and cannot be overridden by user-defined themes.</p>
 <a href="https://github.com/helix-editor/helix/blob/master/theme.toml">here</a> and
 user-submitted themes
 <a href="https://github.com/helix-editor/helix/blob/master/runtime/themes">here</a>.</p>
-<h3 id="using-the-linter"><a class="header" href="#using-the-linter">Using the linter</a></h3>
-<p>Use the supplied linting tool to check for errors and missing scopes:</p>
-<pre><code class="language-sh">cargo xtask themelint onedark # replace onedark with &lt;name&gt;
-</code></pre>
 <h2 id="the-details-of-theme-creation"><a class="header" href="#the-details-of-theme-creation">The details of theme creation</a></h2>
 <h3 id="color-palettes"><a class="header" href="#color-palettes">Color palettes</a></h3>
 <p>It's recommended to define a palette of named colors, and refer to them in the
@@ -2306,6 +2312,7 @@ config = { format = { "semicolons" = "insert", "insertSpaceBeforeFunctionParenth
 <p>The <code>language-servers</code> attribute in a language tells helix which language servers are used for this language.</p>
 <p>They have to be defined in the <code>[language-server]</code> table as described in the previous section.</p>
 <p>Different languages can use the same language server instance, e.g. <code>typescript-language-server</code> is used for javascript, jsx, tsx and typescript by default.</p>
+<p>The definition order of language servers affects the order in the results list of code action menu.</p>
 <p>In case multiple language servers are specified in the <code>language-servers</code> attribute of a <code>language</code>,
 it's often useful to only enable/disable certain language-server features for these language servers.</p>
 <p>As an example, <code>efm-lsp-prettier</code> of the previous example is used only with a formatting command <code>prettier</code>,
