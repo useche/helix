@@ -16,14 +16,6 @@ static CONFIG_FILE: once_cell::sync::OnceCell<PathBuf> = once_cell::sync::OnceCe
 
 static LOG_FILE: once_cell::sync::OnceCell<PathBuf> = once_cell::sync::OnceCell::new();
 
-static COMMAND_HISTFILE: once_cell::sync::OnceCell<PathBuf> = once_cell::sync::OnceCell::new();
-
-static SEARCH_HISTFILE: once_cell::sync::OnceCell<PathBuf> = once_cell::sync::OnceCell::new();
-
-static FILE_HISTFILE: once_cell::sync::OnceCell<PathBuf> = once_cell::sync::OnceCell::new();
-
-static CLIPBOARD_FILE: once_cell::sync::OnceCell<PathBuf> = once_cell::sync::OnceCell::new();
-
 pub fn initialize_config_file(specified_file: Option<PathBuf>) {
     let config_file = specified_file.unwrap_or_else(default_config_file);
     ensure_parent_dir(&config_file);
@@ -34,30 +26,6 @@ pub fn initialize_log_file(specified_file: Option<PathBuf>) {
     let log_file = specified_file.unwrap_or_else(default_log_file);
     ensure_parent_dir(&log_file);
     LOG_FILE.set(log_file).ok();
-}
-
-pub fn initialize_command_histfile(specified_file: Option<PathBuf>) {
-    let command_histfile = specified_file.unwrap_or_else(default_command_histfile);
-    ensure_parent_dir(&command_histfile);
-    COMMAND_HISTFILE.set(command_histfile).ok();
-}
-
-pub fn initialize_search_histfile(specified_file: Option<PathBuf>) {
-    let search_histfile = specified_file.unwrap_or_else(default_search_histfile);
-    ensure_parent_dir(&search_histfile);
-    SEARCH_HISTFILE.set(search_histfile).ok();
-}
-
-pub fn initialize_file_histfile(specified_file: Option<PathBuf>) {
-    let file_histfile = specified_file.unwrap_or_else(default_file_histfile);
-    ensure_parent_dir(&file_histfile);
-    FILE_HISTFILE.set(file_histfile).ok();
-}
-
-pub fn initialize_clipboard_file(specified_file: Option<PathBuf>) {
-    let clipboard_file = specified_file.unwrap_or_else(default_clipboard_file);
-    ensure_parent_dir(&clipboard_file);
-    CLIPBOARD_FILE.set(clipboard_file).ok();
 }
 
 /// A list of runtime directories from highest to lowest priority
@@ -169,14 +137,10 @@ pub fn state_dir() -> PathBuf {
     // TODO: allow env var override
     let strategy = choose_base_strategy().expect("Unable to find the state directory!");
     match strategy.state_dir() {
-        Some(mut path) => {
-            path.push("helix");
-            path
-        }
+        Some(path) => path.join("helix"),
         None => {
-            let mut path = strategy.cache_dir();
-            path.push("helix/state");
-            path
+            let path = strategy.cache_dir();
+            path.join("helix/state")
         }
     }
 }
@@ -187,28 +151,6 @@ pub fn config_file() -> PathBuf {
 
 pub fn log_file() -> PathBuf {
     LOG_FILE.get().map(|path| path.to_path_buf()).unwrap()
-}
-
-pub fn command_histfile() -> PathBuf {
-    COMMAND_HISTFILE
-        .get()
-        .map(|path| path.to_path_buf())
-        .unwrap()
-}
-
-pub fn search_histfile() -> PathBuf {
-    SEARCH_HISTFILE
-        .get()
-        .map(|path| path.to_path_buf())
-        .unwrap()
-}
-
-pub fn file_histfile() -> PathBuf {
-    FILE_HISTFILE.get().map(|path| path.to_path_buf()).unwrap()
-}
-
-pub fn clipboard_file() -> PathBuf {
-    CLIPBOARD_FILE.get().map(|path| path.to_path_buf()).unwrap()
 }
 
 pub fn workspace_config_file() -> PathBuf {
@@ -334,7 +276,7 @@ fn default_config_file() -> PathBuf {
     config_dir().join("config.toml")
 }
 
-fn ensure_parent_dir(path: &Path) {
+pub fn ensure_parent_dir(path: &Path) {
     if let Some(parent) = path.parent() {
         if !parent.exists() {
             std::fs::create_dir_all(parent).ok();

@@ -482,3 +482,5 @@ The state is formatted with bincode, and stored in files in the state directory 
 | `old-files-trim` | number of old-files entries to keep when helix trims the state files at startup | `100` |
 | `commands-trim` | number of command history entries to keep when helix trims the state files at startup | `100` |
 | `search-trim` | number of search history entries to keep when helix trims the state files at startup | `100` |
+| `scope` | Possible values: (1) `all-in-one`: one state for all helix instances and (2) `per-workspace`: one state per directory. See also `scope.dir`. | `all-in-one` |
+| `scope.dir` | string with the directory path to save the state. It can be relative to the working directory. Cannot be used with `scope` | See `scope` |
