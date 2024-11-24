@@ -9,7 +9,7 @@ use crate::{
     handlers::Handlers,
     info::Info,
     input::KeyEvent,
-    persistence::{self, FileHistoryEntry},
+    persistence::FileHistoryEntry,
     regex::EqRegex,
     register::Registers,
     theme::{self, Theme},
@@ -964,6 +964,14 @@ pub enum PopupBorderConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PersistenceScope {
+    AllInOne,
+    PerWorkspace,
+    Dir(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", default, deny_unknown_fields)]
 pub struct PersistenceConfig {
     pub old_files: bool,
@@ -974,6 +982,7 @@ pub struct PersistenceConfig {
     pub old_files_trim: usize,
     pub commands_trim: usize,
     pub search_trim: usize,
+    pub scope: PersistenceScope,
 }
 
 impl Default for PersistenceConfig {
@@ -991,6 +1000,7 @@ impl Default for PersistenceConfig {
             old_files_trim: 100,
             commands_trim: 100,
             search_trim: 100,
+            scope: PersistenceScope::AllInOne,
         }
     }
 }
@@ -1228,7 +1238,6 @@ impl Editor {
         syn_loader: Arc<ArcSwap<syntax::Loader>>,
         config: Arc<dyn DynAccess<Config>>,
         handlers: Handlers,
-        old_file_locs: HashMap<PathBuf, (ViewPosition, Selection)>,
     ) -> Self {
         let language_servers = helix_lsp::Registry::new(syn_loader.clone());
         let conf = config.load();
@@ -1236,6 +1245,17 @@ impl Editor {
 
         // HAXX: offset the render area height by 1 to account for prompt/commandline
         area.height -= 1;
+
+        let old_file_locs = if conf.persistence.old_files {
+            HashMap::from_iter(
+                conf.persistence
+                    .read_file_history()
+                    .into_iter()
+                    .map(|entry| (entry.path.clone(), (entry.view_position, entry.selection))),
+            )
+        } else {
+            HashMap::new()
+        };
 
         Self {
             mode: Mode::Normal,
@@ -1887,7 +1907,7 @@ impl Editor {
                     .iter()
                     .any(|r| r.is_match(&loc.path.to_string_lossy()))
                 {
-                    persistence::push_file_history(&loc);
+                    self.config().persistence.push_file_history(&loc);
                     self.old_file_locs
                         .insert(loc.path, (loc.view_position, loc.selection));
                 }
@@ -1960,7 +1980,7 @@ impl Editor {
                     .iter()
                     .any(|r| r.is_match(&loc.path.to_string_lossy()))
                 {
-                    persistence::push_file_history(&loc);
+                    self.config().persistence.push_file_history(&loc);
                     self.old_file_locs
                         .insert(loc.path, (loc.view_position, loc.selection));
                 }

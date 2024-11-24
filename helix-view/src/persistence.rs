@@ -1,8 +1,9 @@
+use crate::editor::{PersistenceConfig, PersistenceScope};
 use helix_core::Selection;
 use helix_loader::{
-    clipboard_file, command_histfile, file_histfile,
+    ensure_parent_dir, find_workspace,
     persistence::{push_history, read_history, trim_history, write_history},
-    search_histfile,
+    state_dir,
 };
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -26,56 +27,102 @@ impl FileHistoryEntry {
     }
 }
 
-pub fn push_file_history(entry: &FileHistoryEntry) {
-    push_history(file_histfile(), entry)
+enum PersistenceFiles {
+    Command,
+    Search,
+    File,
+    Clipboard,
 }
 
-pub fn read_file_history() -> Vec<FileHistoryEntry> {
-    read_history(&file_histfile())
-}
+impl PersistenceConfig {
+    fn persistence_dir(&self) -> PathBuf {
+        match &self.scope {
+            PersistenceScope::AllInOne => state_dir(),
+            PersistenceScope::PerWorkspace => state_dir().join(
+                find_workspace()
+                    .0
+                    .strip_prefix("/")
+                    .unwrap()
+                    .to_string_lossy()
+                    .replace('/', "%"),
+            ),
+            PersistenceScope::Dir(dir) => PathBuf::from(dir),
+        }
+    }
 
-pub fn trim_file_history(limit: usize) {
-    trim_history::<FileHistoryEntry>(file_histfile(), limit)
-}
+    fn default_file_path(&self, file: PersistenceFiles) -> PathBuf {
+        let filename = match file {
+            PersistenceFiles::Command => "command_history",
+            PersistenceFiles::Search => "search_history",
+            PersistenceFiles::File => "file_history",
+            PersistenceFiles::Clipboard => "clipboard",
+        };
 
-pub fn push_reg_history(register: char, line: &String) {
-    let filepath = match register {
-        ':' => command_histfile(),
-        '/' => search_histfile(),
-        _ => return,
-    };
+        let path = self.persistence_dir().join(filename);
+        ensure_parent_dir(&path);
 
-    push_history(filepath, line)
-}
+        path
+    }
 
-fn read_reg_history(filepath: PathBuf) -> Vec<String> {
-    read_history(&filepath)
-}
+    pub fn push_file_history(&self, entry: &FileHistoryEntry) {
+        push_history(self.default_file_path(PersistenceFiles::File), entry)
+    }
 
-pub fn read_command_history() -> Vec<String> {
-    let mut hist = read_reg_history(command_histfile());
-    hist.reverse();
-    hist
-}
+    pub fn read_file_history(&self) -> Vec<FileHistoryEntry> {
+        read_history(&self.default_file_path(PersistenceFiles::File))
+    }
 
-pub fn trim_command_history(limit: usize) {
-    trim_history::<String>(command_histfile(), limit)
-}
+    pub fn trim_file_history(&self) {
+        trim_history::<FileHistoryEntry>(
+            self.default_file_path(PersistenceFiles::File),
+            self.old_files_trim,
+        )
+    }
+    pub fn push_reg_history(&self, register: char, line: &String) {
+        let filepath = match register {
+            ':' => self.default_file_path(PersistenceFiles::Command),
+            '/' => self.default_file_path(PersistenceFiles::Search),
+            _ => return,
+        };
 
-pub fn read_search_history() -> Vec<String> {
-    let mut hist = read_reg_history(search_histfile());
-    hist.reverse();
-    hist
-}
+        push_history(filepath, line)
+    }
 
-pub fn trim_search_history(limit: usize) {
-    trim_history::<String>(search_histfile(), limit)
-}
+    fn read_reg_history(filepath: PathBuf) -> Vec<String> {
+        read_history(&filepath)
+    }
 
-pub fn write_clipboard_file(values: &Vec<String>) {
-    write_history(clipboard_file(), values)
-}
+    pub fn read_command_history(&self) -> Vec<String> {
+        let mut hist = Self::read_reg_history(self.default_file_path(PersistenceFiles::Command));
+        hist.reverse();
+        hist
+    }
 
-pub fn read_clipboard_file() -> Vec<String> {
-    read_history(&clipboard_file())
+    pub fn trim_command_history(&self) {
+        trim_history::<String>(
+            self.default_file_path(PersistenceFiles::Command),
+            self.commands_trim,
+        )
+    }
+
+    pub fn read_search_history(&self) -> Vec<String> {
+        let mut hist = Self::read_reg_history(self.default_file_path(PersistenceFiles::Search));
+        hist.reverse();
+        hist
+    }
+
+    pub fn trim_search_history(&self) {
+        trim_history::<String>(
+            self.default_file_path(PersistenceFiles::Search),
+            self.search_trim,
+        )
+    }
+
+    pub fn write_clipboard_file(&self, values: &Vec<String>) {
+        write_history(self.default_file_path(PersistenceFiles::Clipboard), values)
+    }
+
+    pub fn read_clipboard_file(&self) -> Vec<String> {
+        read_history(&self.default_file_path(PersistenceFiles::Clipboard))
+    }
 }

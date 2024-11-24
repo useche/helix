@@ -2541,14 +2541,17 @@ fn reload_history(
 
     if cx.editor.config().persistence.old_files {
         cx.editor.old_file_locs = HashMap::from_iter(
-            persistence::read_file_history()
+            cx.editor
+                .config()
+                .persistence
+                .read_file_history()
                 .into_iter()
                 .map(|entry| (entry.path.clone(), (entry.view_position, entry.selection))),
         );
-        let file_trim = cx.editor.config().persistence.old_files_trim;
+        let persistence = cx.editor.config().persistence.clone();
         cx.jobs.add(
             Job::new(async move {
-                persistence::trim_file_history(file_trim);
+                persistence.trim_file_history();
                 Ok(())
             })
             .wait_before_exiting(),
@@ -2557,11 +2560,11 @@ fn reload_history(
     if cx.editor.config().persistence.commands {
         cx.editor
             .registers
-            .write(':', persistence::read_command_history())?;
-        let commands_trim = cx.editor.config().persistence.commands_trim;
+            .write(':', cx.editor.config().persistence.read_command_history())?;
+        let persistence = cx.editor.config().persistence.clone();
         cx.jobs.add(
             Job::new(async move {
-                persistence::trim_command_history(commands_trim);
+                persistence.trim_command_history();
                 Ok(())
             })
             .wait_before_exiting(),
@@ -2570,11 +2573,11 @@ fn reload_history(
     if cx.editor.config().persistence.search {
         cx.editor
             .registers
-            .write('/', persistence::read_search_history())?;
-        let search_trim = cx.editor.config().persistence.search_trim;
+            .write('/', cx.editor.config().persistence.read_search_history())?;
+        let persistence = cx.editor.config().persistence.clone();
         cx.jobs.add(
             Job::new(async move {
-                persistence::trim_search_history(search_trim);
+                persistence.trim_search_history();
                 Ok(())
             })
             .wait_before_exiting(),
@@ -2583,7 +2586,7 @@ fn reload_history(
     if cx.editor.config().persistence.clipboard {
         cx.editor
             .registers
-            .write('"', persistence::read_clipboard_file())?;
+            .write('"', cx.editor.config().persistence.read_clipboard_file())?;
     }
 
     Ok(())

@@ -13,7 +13,7 @@ use helix_view::{
     editor::{ConfigEvent, EditorEvent},
     events::DiagnosticsDidChange,
     graphics::Rect,
-    persistence, theme,
+    theme,
     tree::Layout,
     Align, Editor,
 };
@@ -33,12 +33,7 @@ use crate::{
 use log::{debug, error, info, warn};
 #[cfg(not(feature = "integration"))]
 use std::io::stdout;
-use std::{
-    collections::{btree_map::Entry, HashMap},
-    io::stdin,
-    path::Path,
-    sync::Arc,
-};
+use std::{collections::btree_map::Entry, io::stdin, path::Path, sync::Arc};
 
 #[cfg(not(windows))]
 use anyhow::Context;
@@ -144,15 +139,6 @@ impl Application {
         let config = Arc::new(ArcSwap::from_pointee(config));
         let handlers = handlers::setup(config.clone());
         let persistence_config = config.load().editor.persistence.clone();
-        let old_file_locs = if persistence_config.old_files {
-            HashMap::from_iter(
-                persistence::read_file_history()
-                    .into_iter()
-                    .map(|entry| (entry.path.clone(), (entry.view_position, entry.selection))),
-            )
-        } else {
-            HashMap::new()
-        };
         let mut editor = Editor::new(
             area,
             theme_loader.clone(),
@@ -161,26 +147,25 @@ impl Application {
                 &config.editor
             })),
             handlers,
-            old_file_locs,
         );
 
         // Should we be doing these in background tasks?
         if persistence_config.commands {
             editor
                 .registers
-                .write(':', persistence::read_command_history())
+                .write(':', editor.config().persistence.read_command_history())
                 .unwrap();
         }
         if persistence_config.search {
             editor
                 .registers
-                .write('/', persistence::read_search_history())
+                .write('/', editor.config().persistence.read_search_history())
                 .unwrap();
         }
         if persistence_config.clipboard {
             editor
                 .registers
-                .write('"', persistence::read_clipboard_file())
+                .write('"', editor.config().persistence.read_clipboard_file())
                 .unwrap();
         }
 
@@ -290,30 +275,30 @@ impl Application {
 
         let jobs = Jobs::new();
         if persistence_config.old_files {
-            let file_trim = persistence_config.old_files_trim;
+            let persistence = editor.config().persistence.clone();
             jobs.add(
                 Job::new(async move {
-                    persistence::trim_file_history(file_trim);
+                    persistence.trim_file_history();
                     Ok(())
                 })
                 .wait_before_exiting(),
             );
         }
         if persistence_config.commands {
-            let commands_trim = persistence_config.commands_trim;
+            let persistence = editor.config().persistence.clone();
             jobs.add(
                 Job::new(async move {
-                    persistence::trim_command_history(commands_trim);
+                    persistence.trim_command_history();
                     Ok(())
                 })
                 .wait_before_exiting(),
             );
         }
         if persistence_config.search {
-            let search_trim = persistence_config.search_trim;
+            let persistence = editor.config().persistence.clone();
             jobs.add(
                 Job::new(async move {
-                    persistence::trim_search_history(search_trim);
+                    persistence.trim_search_history();
                     Ok(())
                 })
                 .wait_before_exiting(),
