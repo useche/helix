@@ -933,6 +933,14 @@ pub enum PopupBorderConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PersistenceScope {
+    AllInOne,
+    PerWorkspace,
+    Dir(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", default, deny_unknown_fields)]
 pub struct PersistenceConfig {
     pub old_files: bool,
@@ -943,6 +951,7 @@ pub struct PersistenceConfig {
     pub old_files_trim: usize,
     pub commands_trim: usize,
     pub search_trim: usize,
+    pub scope: PersistenceScope,
 }
 
 impl Default for PersistenceConfig {
@@ -960,6 +969,7 @@ impl Default for PersistenceConfig {
             old_files_trim: 100,
             commands_trim: 100,
             search_trim: 100,
+            scope: PersistenceScope::AllInOne,
         }
     }
 }
@@ -1119,6 +1129,8 @@ pub struct Editor {
 
     pub mouse_down_range: Option<Range>,
     pub cursor_cache: CursorCache,
+
+    pub persistence: persistence::Persistence,
 }
 
 pub type Motion = Box<dyn Fn(&mut Editor)>;
@@ -1190,7 +1202,6 @@ impl Editor {
         syn_loader: Arc<ArcSwap<syntax::Loader>>,
         config: Arc<dyn DynAccess<Config>>,
         handlers: Handlers,
-        old_file_locs: HashMap<PathBuf, (ViewPosition, Selection)>,
     ) -> Self {
         let language_servers = helix_lsp::Registry::new(syn_loader.clone());
         let conf = config.load();
@@ -1198,6 +1209,18 @@ impl Editor {
 
         // HAXX: offset the render area height by 1 to account for prompt/commandline
         area.height -= 1;
+
+        let persistence = persistence::Persistence::new(conf.persistence.clone());
+        let old_file_locs = if conf.persistence.old_files {
+            HashMap::from_iter(
+                persistence
+                    .read_file_history()
+                    .into_iter()
+                    .map(|entry| (entry.path.clone(), (entry.view_position, entry.selection))),
+            )
+        } else {
+            HashMap::new()
+        };
 
         Self {
             mode: Mode::Normal,
@@ -1238,6 +1261,7 @@ impl Editor {
             handlers,
             mouse_down_range: None,
             cursor_cache: CursorCache::default(),
+            persistence,
         }
     }
 
@@ -1278,6 +1302,7 @@ impl Editor {
     pub fn refresh_config(&mut self) {
         let config = self.config();
         self.auto_pairs = (&config.auto_pairs).into();
+        self.persistence.refresh_config(config.persistence.clone());
         self.reset_idle_timer();
         self._refresh();
     }
@@ -1822,7 +1847,7 @@ impl Editor {
                     .iter()
                     .any(|r| r.is_match(&loc.path.to_string_lossy()))
                 {
-                    persistence::push_file_history(&loc);
+                    self.persistence.push_file_history(&loc);
                     self.old_file_locs
                         .insert(loc.path, (loc.view_position, loc.selection));
                 }
@@ -1895,7 +1920,7 @@ impl Editor {
                     .iter()
                     .any(|r| r.is_match(&loc.path.to_string_lossy()))
                 {
-                    persistence::push_file_history(&loc);
+                    self.persistence.push_file_history(&loc);
                     self.old_file_locs
                         .insert(loc.path, (loc.view_position, loc.selection));
                 }

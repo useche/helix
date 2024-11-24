@@ -1,36 +1,18 @@
 use super::*;
 use helix_term::{config::Config, keymap};
 use helix_view::editor;
-use std::{fs::File, io::Read};
-use tempfile::{NamedTempFile, TempPath};
+use std::{fs::File, io::Read, path::Path};
+use tempfile::{tempdir, NamedTempFile};
 
-fn init_persistence_files() -> anyhow::Result<(TempPath, TempPath, TempPath, TempPath)> {
-    let command_file = NamedTempFile::new()?;
-    let command_path = command_file.into_temp_path();
-    helix_loader::initialize_command_histfile(Some(command_path.to_path_buf()));
-
-    let search_file = NamedTempFile::new()?;
-    let search_path = search_file.into_temp_path();
-    helix_loader::initialize_search_histfile(Some(search_path.to_path_buf()));
-
-    let file_file = NamedTempFile::new()?;
-    let file_path = file_file.into_temp_path();
-    helix_loader::initialize_file_histfile(Some(file_path.to_path_buf()));
-
-    let clipboard_file = NamedTempFile::new()?;
-    let clipboard_path = clipboard_file.into_temp_path();
-    helix_loader::initialize_clipboard_file(Some(clipboard_path.to_path_buf()));
-
-    Ok((command_path, search_path, file_path, clipboard_path))
-}
-
-fn config_with_persistence() -> Config {
+fn config_with_persistence(config_tmp_dir: &Path) -> Config {
     let mut editor_config = editor::Config::default();
     editor_config.persistence.old_files = true;
     editor_config.persistence.commands = true;
     editor_config.persistence.search = true;
     editor_config.persistence.clipboard = true;
     editor_config.persistence.search_trim = 3;
+    editor_config.persistence.scope =
+        editor::PersistenceScope::Dir(config_tmp_dir.to_str().unwrap().to_string());
 
     Config {
         theme: None,
@@ -41,8 +23,8 @@ fn config_with_persistence() -> Config {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_persistence() -> anyhow::Result<()> {
-    let (_, search_histfile_path, _, _) = init_persistence_files()?;
-    let mut file = tempfile::NamedTempFile::new()?;
+    let config_tmp_dir = tempdir()?;
+    let mut file = NamedTempFile::new()?;
 
     // Session 1:
     // open a new file,
@@ -50,7 +32,7 @@ async fn test_persistence() -> anyhow::Result<()> {
     // write-quit
     test_key_sequence(
         &mut helpers::AppBuilder::new()
-            .with_config(config_with_persistence())
+            .with_config(config_with_persistence(&config_tmp_dir.path()))
             .with_file(file.path(), None)
             .build()?,
         Some("oa<esc>:wq<ret>"),
@@ -71,7 +53,7 @@ async fn test_persistence() -> anyhow::Result<()> {
     // use last command (write-quit)
     test_key_sequence(
         &mut helpers::AppBuilder::new()
-            .with_config(config_with_persistence())
+            .with_config(config_with_persistence(&config_tmp_dir.path()))
             .with_file(file.path(), None)
             .build()?,
         Some("ob<esc>xy/a<ret>j:<up><ret>"),
@@ -93,7 +75,7 @@ async fn test_persistence() -> anyhow::Result<()> {
     // use last command (write-quit)
     test_key_sequence(
         &mut helpers::AppBuilder::new()
-            .with_config(config_with_persistence())
+            .with_config(config_with_persistence(&config_tmp_dir.path()))
             .with_file(file.path(), None)
             .build()?,
         Some("p/<up><ret>aa<esc>/1<ret>/2<ret>/3<ret>:<up><ret>"),
@@ -111,7 +93,7 @@ async fn test_persistence() -> anyhow::Result<()> {
     // use last command (write-quit)
     test_key_sequence(
         &mut helpers::AppBuilder::new()
-            .with_config(config_with_persistence())
+            .with_config(config_with_persistence(&config_tmp_dir.path()))
             .with_file(file.path(), None)
             .build()?,
         Some(":<up><ret>"),
@@ -121,6 +103,7 @@ async fn test_persistence() -> anyhow::Result<()> {
     .await?;
 
     // NOTE: This time we check the search history file, instead of the edited file
+    let search_histfile_path = config_tmp_dir.path().join("search_history");
     let mut search_histfile = File::open(search_histfile_path)?;
     let mut search_histfile_contents = String::new();
     search_histfile.read_to_string(&mut search_histfile_contents)?;
