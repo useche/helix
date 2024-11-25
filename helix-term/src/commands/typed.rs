@@ -2592,6 +2592,44 @@ fn reload_history(
     Ok(())
 }
 
+fn save_splits(
+    cx: &mut compositor::Context,
+    args: &[Cow<str>],
+    event: PromptEvent,
+) -> anyhow::Result<()> {
+    if event != PromptEvent::Validate {
+        return Ok(());
+    }
+
+    ensure!(args.len() <= 1, ":save-splits takes at most one argument");
+
+    cx.editor.save_split(match args.len() {
+        0 => "".to_string(),
+        _ => args.first().unwrap().to_string(),
+    });
+
+    Ok(())
+}
+
+fn load_splits(
+    cx: &mut compositor::Context,
+    args: &[Cow<str>],
+    event: PromptEvent,
+) -> anyhow::Result<()> {
+    if event != PromptEvent::Validate {
+        return Ok(());
+    }
+
+    ensure!(args.len() <= 1, ":load-splits takes at most one argument");
+
+    cx.editor.load_split(match args.len() {
+        0 => "".to_string(),
+        _ => args.first().unwrap().to_string(),
+    })?;
+
+    Ok(())
+}
+
 pub const TYPABLE_COMMAND_LIST: &[TypableCommand] = &[
     TypableCommand {
         name: "quit",
@@ -3035,6 +3073,20 @@ pub const TYPABLE_COMMAND_LIST: &[TypableCommand] = &[
         aliases: &["hnew"],
         doc: "Open a scratch buffer in a horizontal split.",
         fun: hsplit_new,
+        signature: CommandSignature::none(),
+    },
+    TypableCommand {
+        name: "save-splits",
+        aliases: &[],
+        doc: "Save the current split with the name specified as argument or a default name is none provided.",
+        fun: save_splits,
+        signature: CommandSignature::none(),
+    },
+    TypableCommand {
+        name: "load-splits",
+        aliases: &[],
+        doc: "Loads the specified split or the default one if not name is provided.",
+        fun: load_splits,
         signature: CommandSignature::none(),
     },
     TypableCommand {

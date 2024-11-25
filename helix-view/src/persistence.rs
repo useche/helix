@@ -27,6 +27,33 @@ impl FileHistoryEntry {
     }
 }
 
+// Data structures to represent a split view.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Layout {
+    Horizontal,
+    Vertical,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SplitEntryNode {
+    pub layout: Layout,
+    pub children: Vec<SplitEntryTree>,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SplitEntryLeaf {
+    // Path to the document.
+    pub path: PathBuf,
+    // Where was the position of the view.
+    pub view_position: ViewPosition,
+    pub selection: Selection,
+    // Whether this was the focused split or not.
+    pub focus: bool,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SplitEntryTree {
+    Leaf(Option<SplitEntryLeaf>),
+    Node(SplitEntryNode),
+}
+
 enum PersistenceFiles {
     Command,
     Search,
