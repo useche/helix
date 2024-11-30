@@ -304,6 +304,16 @@ impl Application {
                 .wait_before_exiting(),
             );
         }
+        {
+            let persistence = editor.config().persistence.clone();
+            jobs.add(
+                Job::new(async move {
+                    persistence.trim_split_file();
+                    Ok(())
+                })
+                .wait_before_exiting(),
+            );
+        }
 
         let app = Self {
             compositor,
