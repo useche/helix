@@ -977,6 +977,7 @@ pub struct PersistenceConfig {
     pub old_files_trim: usize,
     pub commands_trim: usize,
     pub search_trim: usize,
+    pub splits_trim: usize,
     pub scope: PersistenceScope,
 }
 
@@ -995,6 +996,7 @@ impl Default for PersistenceConfig {
             old_files_trim: 100,
             commands_trim: 100,
             search_trim: 100,
+            splits_trim: 100,
             scope: PersistenceScope::AllInOne,
         }
     }
@@ -1254,10 +1256,16 @@ impl Editor {
             HashMap::new()
         };
 
+        let splits = persistence.read_split_file();
+        let mut split_info = HashMap::with_capacity(splits.len());
+        for entry in splits {
+            split_info.insert(entry.name, entry.tree);
+        }
+
         Self {
             mode: Mode::Normal,
             tree: Tree::new(area),
-            split_info: HashMap::new(),
+            split_info,
             next_document_id: DocumentId::default(),
             documents: BTreeMap::new(),
             saves: HashMap::new(),
@@ -1802,9 +1810,14 @@ impl Editor {
         let tree_info = self.tree.get_tree_info();
 
         self.split_info.insert(
-            split_name,
+            split_name.clone(),
             self.get_split_tree(tree_info.focus, tree_info.tree),
         );
+
+        self.persistence.push_split_entry(&persistence::SplitEntry {
+            name: split_name.clone(),
+            tree: self.split_info.get(&split_name).unwrap().clone(),
+        });
     }
 
     fn load_split_tree(

@@ -6,6 +6,7 @@ use helix_loader::{
     state_dir,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::view::ViewPosition;
@@ -28,17 +29,17 @@ impl FileHistoryEntry {
 }
 
 // Data structures to represent a split view.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Layout {
     Horizontal,
     Vertical,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SplitEntryNode {
     pub layout: Layout,
     pub children: Vec<SplitEntryTree>,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SplitEntryLeaf {
     // Path to the document.
     pub path: PathBuf,
@@ -48,10 +49,15 @@ pub struct SplitEntryLeaf {
     // Whether this was the focused split or not.
     pub focus: bool,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SplitEntryTree {
     Leaf(Option<SplitEntryLeaf>),
     Node(SplitEntryNode),
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SplitEntry {
+    pub name: String,
+    pub tree: SplitEntryTree,
 }
 
 enum PersistenceFiles {
@@ -59,6 +65,7 @@ enum PersistenceFiles {
     Search,
     File,
     Clipboard,
+    Splits,
 }
 
 fn persistence_dir(config: &PersistenceConfig) -> PathBuf {
@@ -82,6 +89,7 @@ fn default_file_path(file: PersistenceFiles, config: &PersistenceConfig) -> Path
         PersistenceFiles::Search => "search_history",
         PersistenceFiles::File => "file_history",
         PersistenceFiles::Clipboard => "clipboard",
+        PersistenceFiles::Splits => "splits",
     };
 
     let path = persistence_dir(config).join(filename);
@@ -175,5 +183,37 @@ impl Persistence {
             PersistenceFiles::Clipboard,
             &self.config,
         ))
+    }
+
+    pub fn push_split_entry(&self, entry: &SplitEntry) {
+        push_history(
+            default_file_path(PersistenceFiles::Splits, &self.config),
+            &entry,
+        );
+    }
+
+    pub fn read_split_file(&self) -> Vec<SplitEntry> {
+        read_history(&default_file_path(PersistenceFiles::Splits, &self.config))
+    }
+
+    pub fn trim_split_file(&self) {
+        let splits_in_file = self.read_split_file();
+
+        if splits_in_file.len() < self.config.splits_trim {
+            return;
+        }
+
+        let mut splits = HashMap::with_capacity(self.config.splits_trim);
+        for entry in splits_in_file {
+            splits.insert(entry.name.clone(), entry);
+            if splits.len() == self.config.splits_trim {
+                break;
+            }
+        }
+
+        write_history(
+            default_file_path(PersistenceFiles::Splits, &self.config),
+            &splits.values().collect(),
+        )
     }
 }
