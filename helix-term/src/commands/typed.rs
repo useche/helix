@@ -799,6 +799,9 @@ fn quit_all_impl(cx: &mut compositor::Context, force: bool) -> anyhow::Result<()
         buffers_remaining_impl(cx.editor)?;
     }
 
+    // save split in default before quitting
+    cx.editor.save_split("".to_string());
+
     // close all views
     let views: Vec<_> = cx.editor.tree.views().map(|(view, _)| view.id).collect();
     for view_id in views {
