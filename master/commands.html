@@ -182,6 +182,8 @@
                         <h1 id="commands"><a class="header" href="#commands">Commands</a></h1>
 <p>Command mode can be activated by pressing <code>:</code>. The built-in commands are:</p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>:save-splits</code></td><td>Save the current split with a default name. If an optional string is provided, it is used as split name for later recalling.</td></tr>
+<tr><td><code>:load-splits</code></td><td>Loads the named split. If no argument is given, it loads the default split.</td></tr>
 <tr><td><code>:quit</code>, <code>:q</code></td><td>Close the current view.</td></tr>
 <tr><td><code>:quit!</code>, <code>:q!</code></td><td>Force close the current view, ignoring unsaved changes.</td></tr>
 <tr><td><code>:open</code>, <code>:o</code>, <code>:edit</code>, <code>:e</code></td><td>Open a file from disk into the current view.</td></tr>
@@ -271,8 +273,6 @@
 <tr><td><code>:yank-diagnostic</code></td><td>Yank diagnostic(s) under primary cursor to register, or clipboard by default</td></tr>
 <tr><td><code>:read</code>, <code>:r</code></td><td>Load a file into buffer</td></tr>
 <tr><td><code>:reload-history</code></td><td>Reload history files for persistent state</td></tr>
-<tr><td><code>:save-splits</code></td><td>Save the current split with a default name. If an optional string is provided, it is used as split name for later recalling.</td></tr>
-<tr><td><code>:load-splits</code></td><td>Loads the named split. If no argument is given, it loads the default split.</td></tr>
 </tbody></table>
 </div>
                     </main>
