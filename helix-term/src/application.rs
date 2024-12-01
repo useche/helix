@@ -253,6 +253,9 @@ impl Application {
             }
         } else if stdin().is_tty() || cfg!(feature = "integration") {
             editor.new_file(Action::VerticalSplit);
+            if persistence_config.autostart_splits && editor.load_split("".to_string()).is_err() {
+                editor.set_error("Unable to load default split. First time using it?");
+            }
         } else {
             editor
                 .new_file_from_stdin(Action::VerticalSplit)

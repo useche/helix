@@ -78,6 +78,11 @@ fn quit(cx: &mut compositor::Context, args: &[Cow<str>], event: PromptEvent) -> 
 
     // last view and we have unsaved changes
     if cx.editor.tree.views().count() == 1 {
+        // save split in default before quitting
+        if cx.editor.config().persistence.autostart_splits {
+            cx.editor.save_split("".to_string());
+        }
+
         buffers_remaining_impl(cx.editor)?
     }
 
@@ -800,7 +805,9 @@ fn quit_all_impl(cx: &mut compositor::Context, force: bool) -> anyhow::Result<()
     }
 
     // save split in default before quitting
-    cx.editor.save_split("".to_string());
+    if cx.editor.config().persistence.autostart_splits {
+        cx.editor.save_split("".to_string());
+    }
 
     // close all views
     let views: Vec<_> = cx.editor.tree.views().map(|(view, _)| view.id).collect();
