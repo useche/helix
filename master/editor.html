@@ -559,10 +559,12 @@ cursor-line = "warning" # show warnings and errors on the cursorline inline
 <tr><td><code>commands</code></td><td>whether to persist command history between sessions</td><td><code>false</code></td></tr>
 <tr><td><code>search</code></td><td>whether to persist search history between sessions</td><td><code>false</code></td></tr>
 <tr><td><code>clipboard</code></td><td>whether to persist helix's internal clipboard between sessions</td><td><code>false</code></td></tr>
+<tr><td><code>autostart-splits</code></td><td>Set to <code>true</code> to automatically save the last split before quitting and load it when starting.</td><td><code>false</code></td></tr>
 <tr><td><code>old-files-exclusions</code></td><td>a list of regexes defining file paths to exclude from persistence</td><td><code>[".*/\.git/.*", ".*/COMMIT_EDITMSG"]</code></td></tr>
 <tr><td><code>old-files-trim</code></td><td>number of old-files entries to keep when helix trims the state files at startup</td><td><code>100</code></td></tr>
 <tr><td><code>commands-trim</code></td><td>number of command history entries to keep when helix trims the state files at startup</td><td><code>100</code></td></tr>
 <tr><td><code>search-trim</code></td><td>number of search history entries to keep when helix trims the state files at startup</td><td><code>100</code></td></tr>
+<tr><td><code>splits-trim</code></td><td>maximum number of splits entries to be kept by Helix.</td><td><code>100</code></td></tr>
 <tr><td><code>scope</code></td><td>Possible values: (1) <code>all-in-one</code>: one state for all helix instances and (2) <code>per-workspace</code>: one state per directory. See also <code>scope.dir</code>.</td><td><code>all-in-one</code></td></tr>
 <tr><td><code>scope.dir</code></td><td>string with the directory path to save the state. It can be relative to the working directory. Cannot be used with <code>scope</code></td><td>See <code>scope</code></td></tr>
 </tbody></table>
