@@ -478,6 +478,7 @@ The state is formatted with bincode, and stored in files in the state directory 
 | `commands` | whether to persist command history between sessions | `false` |
 | `search` | whether to persist search history between sessions | `false` |
 | `clipboard` | whether to persist helix's internal clipboard between sessions | `false` |
+| `autostart-splits` | Set to `true` to automatically save the last split before quitting and load it when starting. | `false` |
 | `old-files-exclusions` | a list of regexes defining file paths to exclude from persistence | `[".*/\.git/.*", ".*/COMMIT_EDITMSG"]` |
 | `old-files-trim` | number of old-files entries to keep when helix trims the state files at startup | `100` |
 | `commands-trim` | number of command history entries to keep when helix trims the state files at startup | `100` |

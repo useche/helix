@@ -978,6 +978,7 @@ pub struct PersistenceConfig {
     pub commands: bool,
     pub search: bool,
     pub clipboard: bool,
+    pub autostart_splits: bool,
     pub old_files_exclusions: Vec<EqRegex>,
     pub old_files_trim: usize,
     pub commands_trim: usize,
@@ -993,6 +994,7 @@ impl Default for PersistenceConfig {
             commands: false,
             search: false,
             clipboard: false,
+            autostart_splits: false,
             // TODO: any more defaults we should add here?
             old_files_exclusions: [r".*/\.git/.*", r".*/COMMIT_EDITMSG"]
                 .iter()
