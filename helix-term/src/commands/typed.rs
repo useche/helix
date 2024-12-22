@@ -12,6 +12,7 @@ use helix_core::{line_ending, shellwords::Shellwords};
 use helix_stdx::path::home_dir;
 use helix_view::document::{read_to_string, DEFAULT_LANGUAGE_NAME};
 use helix_view::editor::{CloseError, ConfigEvent};
+use helix_view::persistence::PersistenceType;
 use serde_json::Value;
 use ui::completers::{self, Completer};
 
@@ -2549,7 +2550,12 @@ fn reload_history(
         return Ok(());
     }
 
-    if cx.editor.config().persistence.old_files {
+    if cx
+        .editor
+        .config()
+        .persistence
+        .enabled(PersistenceType::File)
+    {
         cx.editor.old_file_locs = HashMap::from_iter(
             cx.editor
                 .config()
@@ -2567,7 +2573,12 @@ fn reload_history(
             .wait_before_exiting(),
         );
     }
-    if cx.editor.config().persistence.commands {
+    if cx
+        .editor
+        .config()
+        .persistence
+        .enabled(PersistenceType::Command)
+    {
         cx.editor
             .registers
             .write(':', cx.editor.config().persistence.read_command_history())?;
@@ -2580,7 +2591,12 @@ fn reload_history(
             .wait_before_exiting(),
         );
     }
-    if cx.editor.config().persistence.search {
+    if cx
+        .editor
+        .config()
+        .persistence
+        .enabled(PersistenceType::Search)
+    {
         cx.editor
             .registers
             .write('/', cx.editor.config().persistence.read_search_history())?;
@@ -2593,7 +2609,12 @@ fn reload_history(
             .wait_before_exiting(),
         );
     }
-    if cx.editor.config().persistence.clipboard {
+    if cx
+        .editor
+        .config()
+        .persistence
+        .enabled(PersistenceType::Clipboard)
+    {
         cx.editor
             .registers
             .write('"', cx.editor.config().persistence.read_clipboard_file())?;

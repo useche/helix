@@ -44,6 +44,7 @@ use helix_view::{
     info::Info,
     input::KeyEvent,
     keyboard::KeyCode,
+    persistence::PersistenceType,
     theme::Style,
     tree,
     view::View,
@@ -4386,7 +4387,11 @@ fn yank_impl(editor: &mut Editor, register: char) {
         .collect();
     let selections = values.len();
 
-    if editor.config().persistence.clipboard {
+    if editor
+        .config()
+        .persistence
+        .enabled(PersistenceType::Clipboard)
+    {
         editor.config().persistence.write_clipboard_file(&values);
     }
 

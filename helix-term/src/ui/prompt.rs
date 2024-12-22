@@ -5,6 +5,7 @@ use helix_core::syntax;
 use helix_view::document::Mode;
 use helix_view::input::KeyEvent;
 use helix_view::keyboard::KeyCode;
+use helix_view::persistence::PersistenceType;
 use std::sync::Arc;
 use std::{borrow::Cow, ops::RangeFrom};
 use tui::buffer::Buffer as Surface;
@@ -613,8 +614,18 @@ impl Component for Prompt {
                                 {
                                     cx.editor.set_error(err.to_string());
                                 }
-                                if (cx.editor.config().persistence.commands && register == ':')
-                                    || (cx.editor.config().persistence.search && register == '/')
+                                if (cx
+                                    .editor
+                                    .config()
+                                    .persistence
+                                    .enabled(PersistenceType::Command)
+                                    && register == ':')
+                                    || (cx
+                                        .editor
+                                        .config()
+                                        .persistence
+                                        .enabled(PersistenceType::Search)
+                                        && register == '/')
                                 {
                                     cx.editor
                                         .config()
