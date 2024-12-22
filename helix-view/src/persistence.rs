@@ -1,4 +1,4 @@
-use crate::editor::{PersistenceConfig, PersistenceScope};
+use crate::editor::{OptionToml, PersistenceConfig, PersistenceConfigOption, PersistenceScope};
 use helix_core::Selection;
 use helix_loader::{
     ensure_parent_dir, find_workspace,
@@ -60,7 +60,7 @@ pub struct SplitEntry {
     pub tree: SplitEntryTree,
 }
 
-enum PersistenceType {
+pub enum PersistenceType {
     Command,
     Search,
     File,
@@ -69,8 +69,39 @@ enum PersistenceType {
 }
 
 impl PersistenceConfig {
-    fn persistence_dir(&self) -> PathBuf {
-        match &self.scope {
+    fn get_option(&self, file: PersistenceType) -> &OptionToml<PersistenceConfigOption> {
+        match file {
+            PersistenceType::Command => &self.commands,
+            PersistenceType::Search => &self.search,
+            PersistenceType::Clipboard => &self.clipboard,
+            PersistenceType::File => &self.old_files,
+            PersistenceType::Splits => &self.splits,
+        }
+    }
+
+    pub fn enabled(&self, file: PersistenceType) -> bool {
+        match self.get_option(file) {
+            OptionToml::None => self.all.enabled,
+            OptionToml::Some(opt) => opt.enabled,
+        }
+    }
+
+    pub fn max_entries(&self, file: PersistenceType) -> usize {
+        match self.get_option(file) {
+            OptionToml::None => self.all.max_entries,
+            OptionToml::Some(opt) => opt.max_entries,
+        }
+    }
+
+    pub fn scope(&self, file: PersistenceType) -> &PersistenceScope {
+        match self.get_option(file) {
+            OptionToml::None => &self.all.scope,
+            OptionToml::Some(opt) => &opt.scope,
+        }
+    }
+
+    fn persistence_dir(scope: &PersistenceScope) -> PathBuf {
+        match scope {
             PersistenceScope::AllInOne => state_dir(),
             PersistenceScope::PerWorkspace => state_dir().join(
                 find_workspace()
@@ -93,7 +124,7 @@ impl PersistenceConfig {
             PersistenceType::Splits => "splits",
         };
 
-        let path = self.persistence_dir().join(filename);
+        let path = PersistenceConfig::persistence_dir(self.scope(file)).join(filename);
         ensure_parent_dir(&path);
 
         path
@@ -110,7 +141,7 @@ impl PersistenceConfig {
     pub fn trim_file_history(&self) {
         trim_history::<FileHistoryEntry>(
             self.default_file_path(PersistenceType::File),
-            self.old_files_trim,
+            self.max_entries(PersistenceType::File),
         )
     }
     pub fn push_reg_history(&self, register: char, line: &String) {
@@ -136,7 +167,7 @@ impl PersistenceConfig {
     pub fn trim_command_history(&self) {
         trim_history::<String>(
             self.default_file_path(PersistenceType::Command),
-            self.commands_trim,
+            self.max_entries(PersistenceType::Command),
         )
     }
 
@@ -149,7 +180,7 @@ impl PersistenceConfig {
     pub fn trim_search_history(&self) {
         trim_history::<String>(
             self.default_file_path(PersistenceType::Search),
-            self.search_trim,
+            self.max_entries(PersistenceType::Search),
         )
     }
 
@@ -171,15 +202,16 @@ impl PersistenceConfig {
 
     pub fn trim_split_file(&self) {
         let splits_in_file = self.read_split_file();
+        let max_entries = self.max_entries(PersistenceType::Splits);
 
-        if splits_in_file.len() < self.splits_trim {
+        if splits_in_file.len() < max_entries {
             return;
         }
 
-        let mut splits = HashMap::with_capacity(self.splits_trim);
+        let mut splits = HashMap::with_capacity(max_entries);
         for entry in splits_in_file {
             splits.insert(entry.name.clone(), entry);
-            if splits.len() == self.splits_trim {
+            if splits.len() == max_entries {
                 break;
             }
         }

@@ -6,12 +6,9 @@ use tempfile::{tempdir, NamedTempFile};
 
 fn config_with_persistence(config_tmp_dir: &Path) -> Config {
     let mut editor_config = editor::Config::default();
-    editor_config.persistence.old_files = true;
-    editor_config.persistence.commands = true;
-    editor_config.persistence.search = true;
-    editor_config.persistence.clipboard = true;
-    editor_config.persistence.search_trim = 3;
-    editor_config.persistence.scope =
+    editor_config.persistence.all.enabled = true;
+    editor_config.persistence.all.max_entries = 3;
+    editor_config.persistence.all.scope =
         editor::PersistenceScope::Dir(config_tmp_dir.to_str().unwrap().to_string());
 
     Config {
