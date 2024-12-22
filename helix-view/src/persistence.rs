@@ -60,7 +60,7 @@ pub struct SplitEntry {
     pub tree: SplitEntryTree,
 }
 
-enum PersistenceFiles {
+enum PersistenceType {
     Command,
     Search,
     File,
@@ -83,13 +83,13 @@ fn persistence_dir(config: &PersistenceConfig) -> PathBuf {
     }
 }
 
-fn default_file_path(file: PersistenceFiles, config: &PersistenceConfig) -> PathBuf {
+fn default_file_path(file: PersistenceType, config: &PersistenceConfig) -> PathBuf {
     let filename = match file {
-        PersistenceFiles::Command => "command_history",
-        PersistenceFiles::Search => "search_history",
-        PersistenceFiles::File => "file_history",
-        PersistenceFiles::Clipboard => "clipboard",
-        PersistenceFiles::Splits => "splits",
+        PersistenceType::Command => "command_history",
+        PersistenceType::Search => "search_history",
+        PersistenceType::File => "file_history",
+        PersistenceType::Clipboard => "clipboard",
+        PersistenceType::Splits => "splits",
     };
 
     let path = persistence_dir(config).join(filename);
@@ -114,25 +114,25 @@ impl Persistence {
 
     pub fn push_file_history(&self, entry: &FileHistoryEntry) {
         push_history(
-            default_file_path(PersistenceFiles::File, &self.config),
+            default_file_path(PersistenceType::File, &self.config),
             entry,
         )
     }
 
     pub fn read_file_history(&self) -> Vec<FileHistoryEntry> {
-        read_history(&default_file_path(PersistenceFiles::File, &self.config))
+        read_history(&default_file_path(PersistenceType::File, &self.config))
     }
 
     pub fn trim_file_history(&self) {
         trim_history::<FileHistoryEntry>(
-            default_file_path(PersistenceFiles::File, &self.config),
+            default_file_path(PersistenceType::File, &self.config),
             self.config.old_files_trim,
         )
     }
     pub fn push_reg_history(&self, register: char, line: &String) {
         let filepath = match register {
-            ':' => default_file_path(PersistenceFiles::Command, &self.config),
-            '/' => default_file_path(PersistenceFiles::Search, &self.config),
+            ':' => default_file_path(PersistenceType::Command, &self.config),
+            '/' => default_file_path(PersistenceType::Search, &self.config),
             _ => return,
         };
 
@@ -145,55 +145,52 @@ impl Persistence {
 
     pub fn read_command_history(&self) -> Vec<String> {
         let mut hist =
-            Self::read_reg_history(default_file_path(PersistenceFiles::Command, &self.config));
+            Self::read_reg_history(default_file_path(PersistenceType::Command, &self.config));
         hist.reverse();
         hist
     }
 
     pub fn trim_command_history(&self) {
         trim_history::<String>(
-            default_file_path(PersistenceFiles::Command, &self.config),
+            default_file_path(PersistenceType::Command, &self.config),
             self.config.commands_trim,
         )
     }
 
     pub fn read_search_history(&self) -> Vec<String> {
         let mut hist =
-            Self::read_reg_history(default_file_path(PersistenceFiles::Search, &self.config));
+            Self::read_reg_history(default_file_path(PersistenceType::Search, &self.config));
         hist.reverse();
         hist
     }
 
     pub fn trim_search_history(&self) {
         trim_history::<String>(
-            default_file_path(PersistenceFiles::Search, &self.config),
+            default_file_path(PersistenceType::Search, &self.config),
             self.config.search_trim,
         )
     }
 
     pub fn write_clipboard_file(&self, values: &Vec<String>) {
         write_history(
-            default_file_path(PersistenceFiles::Clipboard, &self.config),
+            default_file_path(PersistenceType::Clipboard, &self.config),
             values,
         )
     }
 
     pub fn read_clipboard_file(&self) -> Vec<String> {
-        read_history(&default_file_path(
-            PersistenceFiles::Clipboard,
-            &self.config,
-        ))
+        read_history(&default_file_path(PersistenceType::Clipboard, &self.config))
     }
 
     pub fn push_split_entry(&self, entry: &SplitEntry) {
         push_history(
-            default_file_path(PersistenceFiles::Splits, &self.config),
+            default_file_path(PersistenceType::Splits, &self.config),
             &entry,
         );
     }
 
     pub fn read_split_file(&self) -> Vec<SplitEntry> {
-        read_history(&default_file_path(PersistenceFiles::Splits, &self.config))
+        read_history(&default_file_path(PersistenceType::Splits, &self.config))
     }
 
     pub fn trim_split_file(&self) {
@@ -212,7 +209,7 @@ impl Persistence {
         }
 
         write_history(
-            default_file_path(PersistenceFiles::Splits, &self.config),
+            default_file_path(PersistenceType::Splits, &self.config),
             &splits.values().collect(),
         )
     }
