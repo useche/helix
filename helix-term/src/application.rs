@@ -13,6 +13,7 @@ use helix_view::{
     editor::{ConfigEvent, EditorEvent},
     events::DiagnosticsDidChange,
     graphics::Rect,
+    persistence::PersistenceType,
     theme,
     tree::Layout,
     Align, Editor,
@@ -150,19 +151,19 @@ impl Application {
         );
 
         // Should we be doing these in background tasks?
-        if persistence_config.commands {
+        if persistence_config.enabled(PersistenceType::Command) {
             editor
                 .registers
                 .write(':', editor.persistence.read_command_history())
                 .unwrap();
         }
-        if persistence_config.search {
+        if persistence_config.enabled(PersistenceType::Search) {
             editor
                 .registers
                 .write('/', editor.persistence.read_search_history())
                 .unwrap();
         }
-        if persistence_config.clipboard {
+        if persistence_config.enabled(PersistenceType::Clipboard) {
             editor
                 .registers
                 .write('"', editor.persistence.read_clipboard_file())
@@ -272,7 +273,7 @@ impl Application {
         .context("build signal handler")?;
 
         let jobs = Jobs::new();
-        if persistence_config.old_files {
+        if persistence_config.enabled(PersistenceType::File) {
             let persistence = editor.persistence.clone();
             jobs.add(
                 Job::new(async move {
@@ -282,7 +283,7 @@ impl Application {
                 .wait_before_exiting(),
             );
         }
-        if persistence_config.commands {
+        if persistence_config.enabled(PersistenceType::Command) {
             let persistence = editor.persistence.clone();
             jobs.add(
                 Job::new(async move {
@@ -292,7 +293,7 @@ impl Application {
                 .wait_before_exiting(),
             );
         }
-        if persistence_config.search {
+        if persistence_config.enabled(PersistenceType::Search) {
             let persistence = editor.persistence.clone();
             jobs.add(
                 Job::new(async move {

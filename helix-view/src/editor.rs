@@ -8,7 +8,7 @@ use crate::{
     handlers::Handlers,
     info::Info,
     input::KeyEvent,
-    persistence::{self, FileHistoryEntry, SplitEntryLeaf},
+    persistence::{self, FileHistoryEntry, PersistenceType, SplitEntryLeaf},
     regex::EqRegex,
     register::Registers,
     theme::{self, Theme},
@@ -968,38 +968,55 @@ pub enum PersistenceScope {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", default, deny_unknown_fields)]
+pub struct PersistenceConfigOption {
+    pub enabled: bool,
+    pub max_entries: usize,
+    pub scope: PersistenceScope,
+}
+
+impl Default for PersistenceConfigOption {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            max_entries: 100,
+            scope: PersistenceScope::AllInOne,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case", default, deny_unknown_fields)]
 pub struct PersistenceConfig {
-    pub old_files: bool,
-    pub commands: bool,
-    pub search: bool,
-    pub clipboard: bool,
+    // Default value if an specific value is not set.
+    pub all: PersistenceConfigOption,
+
+    // Specific values.
+    pub old_files: OptionToml<PersistenceConfigOption>,
+    pub commands: OptionToml<PersistenceConfigOption>,
+    pub search: OptionToml<PersistenceConfigOption>,
+    pub clipboard: OptionToml<PersistenceConfigOption>,
+    pub splits: OptionToml<PersistenceConfigOption>,
+
+    // Additional options.
     pub autostart_splits: bool,
     pub old_files_exclusions: Vec<EqRegex>,
-    pub old_files_trim: usize,
-    pub commands_trim: usize,
-    pub search_trim: usize,
-    pub splits_trim: usize,
-    pub scope: PersistenceScope,
 }
 
 impl Default for PersistenceConfig {
     fn default() -> Self {
         Self {
-            old_files: false,
-            commands: false,
-            search: false,
-            clipboard: false,
+            all: PersistenceConfigOption::default(),
+            old_files: OptionToml::None,
+            commands: OptionToml::None,
+            search: OptionToml::None,
+            clipboard: OptionToml::None,
+            splits: OptionToml::None,
             autostart_splits: false,
             // TODO: any more defaults we should add here?
             old_files_exclusions: [r".*/\.git/.*", r".*/COMMIT_EDITMSG"]
                 .iter()
                 .map(|s| Regex::new(s).unwrap().into())
                 .collect(),
-            old_files_trim: 100,
-            commands_trim: 100,
-            search_trim: 100,
-            splits_trim: 100,
-            scope: PersistenceScope::AllInOne,
         }
     }
 }
@@ -1247,7 +1264,7 @@ impl Editor {
         area.height -= 1;
 
         let persistence = persistence::Persistence::new(conf.persistence.clone());
-        let old_file_locs = if conf.persistence.old_files {
+        let old_file_locs = if conf.persistence.enabled(PersistenceType::File) {
             HashMap::from_iter(
                 persistence
                     .read_file_history()
@@ -2038,7 +2055,7 @@ impl Editor {
             doc.remove_view(id);
         }
 
-        if self.config().persistence.old_files {
+        if self.config().persistence.enabled(PersistenceType::File) {
             for loc in file_locs {
                 if !self
                     .config()
@@ -2111,7 +2128,7 @@ impl Editor {
             })
             .collect();
 
-        if self.config().persistence.old_files {
+        if self.config().persistence.enabled(PersistenceType::File) {
             for loc in file_locs {
                 if !self
                     .config()
