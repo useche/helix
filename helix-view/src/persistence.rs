@@ -130,6 +130,10 @@ impl PersistenceConfig {
         path
     }
 
+    pub fn exclude(&self, path: &str) -> bool {
+        self.files_exclusions.iter().any(|r| r.is_match(path))
+    }
+
     pub fn push_file_history(&self, entry: &FileHistoryEntry) {
         push_history(self.default_file_path(PersistenceType::File), entry)
     }
