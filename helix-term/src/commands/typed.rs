@@ -3126,7 +3126,7 @@ pub const TYPABLE_COMMAND_LIST: &[TypableCommand] = &[
         aliases: &[],
         doc: "Loads the specified split or the default one if not name is provided.",
         fun: load_splits,
-        signature: CommandSignature::none(),
+        signature: CommandSignature::positional(&[completers::splits]),
     },
     TypableCommand {
         name: "tutor",
